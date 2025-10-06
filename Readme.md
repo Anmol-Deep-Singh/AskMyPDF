@@ -1,4 +1,4 @@
-# 💬 ChatApp
+# 💬 AskMyPDF
 
 A modern real-time chat application built with **React**, **TailwindCSS**, **Node.js/Express**, and **Socket.IO**.  
 This project is designed to be **scalable, reusable, and developer-friendly**, with authentication already integrated.  

@@ -8,14 +8,11 @@
       "path": "./tsconfig.node.json"
     }
   ],
+
   "compilerOptions": {
-    // ...
-    "baseUrl": ".",
+    "moduleResolution": "bundler",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
-    // ...
   }
 }

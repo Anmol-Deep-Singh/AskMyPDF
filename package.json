@@ -11,8 +11,7 @@
     "dev:Backend": "cd Backend && npm run dev"
   },
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Anmol-Deep-Singh/test.git"
+    "type": "git"
   },
   "keywords": [
     "monorepo",

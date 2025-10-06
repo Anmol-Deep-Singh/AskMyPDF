@@ -142,10 +142,22 @@ const AuthCard: React.FC<AuthCardProps> = ({ Auth,SetAuth }: AuthCardProps) => {
       </h1>
 
       <div className="flex flex-row items-center justify-center my-5">
-        <Button type={"button"} kind={"A"} color={"var(--main3)"} onClick={() => { Servicedown() }}
+        <Button 
+          type={"button"} 
+          kind={"A"} 
+          height={"h-[32px]"}
+          width={"w-[110px]"}
+          color={"bg-[var(--main3)]"} 
+          onClick={() => { Servicedown() }}
           leftimage={<FontAwesomeIcon icon={faGithub} className="text-[16px]" />}
           text={"Github"} />
-        <Button type={"button"} kind={"A"} color={"var(--main3)"} onClick={() => { Servicedown() }}
+        <Button 
+          type={"button"} 
+          kind={"A"} 
+          height="h-[32px]"
+          width="w-[110px]"
+          color={"bg-[var(--main3)]"} 
+          onClick={() => { Servicedown() }}
           leftimage={<FontAwesomeIcon icon={faGoogle} className="text-[16px]" />}
           text={"Google"} />
       </div>
@@ -222,7 +234,9 @@ const AuthCard: React.FC<AuthCardProps> = ({ Auth,SetAuth }: AuthCardProps) => {
       <Button
         type={"submit"}
         kind={"B"}
-        color={"var(--main1)"}
+        height={"h-[32px]"}
+        width={"w-[110px]"}        
+        color={"bg-[var(--main1)]"}
         text={Auth === 'SignUp' ? "Sign Up" : "Sign In"}
       />
       <h3 className="block md:hidden mt-2">
