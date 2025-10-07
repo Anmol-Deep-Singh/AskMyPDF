@@ -1,16 +1,30 @@
-import express, { type NextFunction,type Request,type Response } from 'express'
-
-import mongoose from 'mongoose';
-import jwt from 'jsonwebtoken';
+import{ type NextFunction,type Request,type Response } from 'express'
+import jwt from "jsonwebtoken";
 import dotenv from 'dotenv';
+import { error } from 'console';
+
 
 dotenv.config();
-const secret = process.env.JWT_SECRET as string | undefined;
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
-export const auth = async (req:Request,res:Response,next:NextFunction) =>{
-        const token = req.headers.token;
-    if(!token){
-        res.status(400).send("No user found");
+const auth = async (req:Request,res:Response,next:NextFunction) =>{
+    try {
+        const token = req.headers.token as string;
+        if(!token){
+            return res.status(400).json({
+                message: "No token found"
+            })
+        }else{
+            const decodeduser = jwt.verify(token,JWT_SECRET);
+            //@ts-ignore
+            req.user = decodeduser;
+            next();
+        }       
+    } catch (err) {
+        return res.status(400).json({
+            message: "Invalid User",
+            error: err
+        })
     }
-    // const decoded = jwt.verify(token,secret);
 }
+export {auth}
