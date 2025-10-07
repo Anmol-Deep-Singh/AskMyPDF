@@ -16,7 +16,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
     localStorage.setItem("Theme",Theme);
   }, [Theme]);    
   return (
-    <div className='min-w-screen h-[64px] sticky-top-0 flex flex-row justify-between'>
+    <div className='min-w-screen h-[64px] sticky-top-0 flex flex-row justify-between bg-[var(--navbar)] border-b-2 border-[var(--border)]'>
         <div className='h-[100%] w-auto bg-transparent flex flex-row justify-start items-center'>
             <ButtonComp
                 kind={"A"}

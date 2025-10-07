@@ -65,6 +65,11 @@
 --text1:rgb(var(--purple_white));
 --text2:rgb(var(--purple_black));
 --inputbox:rgb(var(--grey1));
+--navbar:rgb(var(--purple_white));
+--sidebar:rgb(var(--purple_white));
+--projectbut:rgb(var(--purple1));
+--borderdrag:rgb(var(--purple1));
+--border:rgb(var(--grey1));
 }
 
 .theme_purple_dark {
@@ -74,6 +79,11 @@
 --text1:rgb(var(--purple_black));
 --text2:rgb(var(--purple_white));
 --inputbox:rgb(var(--grey2));
+--navbar:rgb(var(--purple_black));
+--sidebar:rgb(var(--purple_white));
+--projectbut:rgb(var(--purple1));
+--borderdrag:rgb(var(--purple1));
+--border:rgb(var(--grey2));
 }
 
 
