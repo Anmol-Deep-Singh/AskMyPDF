@@ -7,13 +7,15 @@ type FetchProps = {
 
 export const fetchdata=async({method,URL,headers,body}: FetchProps)=>{
     try {
+        const isFormData = body instanceof FormData;
         const response = await fetch(URL, {
             method,
+            credentials: 'include',
             headers: {
-                "Content-Type": "application/json",
+                ...(isFormData ? {} : { "Content-Type": "application/json" }),
                 ...headers,
             },
-            body: body ? JSON.stringify(body) : undefined,
+            body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
         });
         if (!response.ok) {
             const data = await response.json();
