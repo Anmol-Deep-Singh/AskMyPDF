@@ -21,9 +21,20 @@ export async function getEmbeddingsFromChunks(chunks: string[]): Promise<number[
   const vectors: number[][] = await Promise.all(
     chunks.map(async (chunk) => {
       const output = await embedder(chunk, { pooling: "mean", normalize: true });
-      return Array.from(output.data as Float32Array); // <-- cast here
+      return Array.from(output.data as Float32Array);
     })
   );
 
   return vectors;
+}
+
+/**
+ * Convert a single query string into one embedding
+ * @param query - user query
+ * @returns Promise<number[]> - embedding vector
+ */
+export async function getQueryEmbedding(query: string): Promise<number[]> {
+  const embedder = await getEmbedder();
+  const output = await embedder(query, { pooling: "mean", normalize: true });
+  return Array.from(output.data as Float32Array);
 }

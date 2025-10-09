@@ -5,9 +5,10 @@ import historyModel from '../models/History.js';
 import dotenv from 'dotenv';
 import { pdf as pdfParse } from "pdf-parse";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
-import { getEmbeddingsFromChunks } from '../util/Embedder.js';
-
-dotenv.config();
+import { getEmbeddingsFromChunks,getQueryEmbedding } from '../util/Embedder.js';
+import PdfChunk from '../models/PDFChunk.js';
+import { AskGemini } from '../util/geminiHelper.js';
+import mongoose from 'mongoose';
 const JWT_SECRET = process.env.JWT_SECRET as string;
 async function chunkPdfText(pdfText: string) {
   const splitter = new RecursiveCharacterTextSplitter({
@@ -18,8 +19,6 @@ async function chunkPdfText(pdfText: string) {
   const chunks = await splitter.splitText(pdfText);
   return chunks;
 }
-
-
 const pdfarr= async(req:Request , res:Response)=>{
     try {
         //@ts-ignore
@@ -84,11 +83,16 @@ const uploadpdf= async(req:Request , res:Response)=>{
         const parsed = await pdfParse(req.file.buffer);
         const chunks = await chunkPdfText(parsed.text);
         const vectors = await getEmbeddingsFromChunks(chunks);
-        console.log(vectors);
-        chunks.forEach(async (chunk,index)=>{
-            // const vector = await getEmbedding(chunk[index] as string);
-            // console.log(vector);
-        })
+        let docs:any = [];
+        for(let i = 0; i<chunks.length ; i++){
+            docs.push({
+                pdf:savedPDF._id,
+                content:chunks[i],
+                embedding:vectors[i],
+                chunkIndex:i,
+            })
+        }
+        await PdfChunk.insertMany(docs);
         res.status(200).json({
             message: "PDF uploaded successfully",
             data: {
@@ -107,7 +111,46 @@ const uploadpdf= async(req:Request , res:Response)=>{
     }
 };
 const chatreply= async(req:Request , res:Response)=>{
+    try {
+        const query = (req.body?.query as string) || "What is Object Oriented Programming";
+        const PDFid = req.body?.PDFid as string;
+        if (!PDFid) {
+            return res.status(400).json({ message: "PDFid is required" });
+        }
+        if (!mongoose.Types.ObjectId.isValid(PDFid)) {
+            return res.status(400).json({ message: "Invalid PDFid" });
+        }
+        const queryEmb = await getQueryEmbedding(query);
 
+        const results = await PdfChunk.aggregate([
+        {
+            "$vectorSearch": {
+            "index": "vector_index",
+            "path": "embedding",
+            "queryVector": queryEmb,
+            "numCandidates": 100,
+            "limit": 2,
+            }
+        }
+        ])
+        const context = results.map(r => r.content).join("\n\n");
+        const prompt = `
+            You are a helpful assistant. Use the following PDF content to answer the user's question.
+            PDF Content:
+            ${context}
+            User's Question:
+            ${query}
+            Answer in a clear, concise way, and mention page numbers if relevant.
+            `;
+        const answer = AskGemini(prompt);
+        console.log(answer)
+        res.send("BYE")
+    } catch (err) {
+        res.status(500).json({
+            message: "Chat failed",
+            error: err instanceof Error ? err.message : "Unknown error"
+        });        
+    }
 };
 const deletepdf= async(req:Request , res:Response)=>{
     try {

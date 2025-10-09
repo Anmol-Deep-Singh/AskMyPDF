@@ -18,9 +18,6 @@ const pdfChunkSchema = new mongoose.Schema({
     type: Number,    
     required: true,
   },
-  pageNum: {
-    type: Number,    
-  },
   createdAt: {
     type: Date,
     default: Date.now,
