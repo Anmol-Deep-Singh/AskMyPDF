@@ -1,12 +1,14 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUp } from '@fortawesome/free-solid-svg-icons';
+import { useAppContext } from "../lib/AppContext";
 
 const ChatComp = () => {
+    const {currentPDF} = useAppContext();
   return (
     <div className='bg-green-600 flex-1 flex flex-col justify-start'>
         <div className='flex-1 bg-blue-300 pt-[12px] pl-[64px] pr-[64px]'>
             <div className='bg-blue-900 ml-[122px] mr-[122px]'>
-                Hello
+                
             </div>
         </div>
         <div className='bg-blue-200 h-[70px] flex flex-row justify-center items-start pl-[64px] pr-[64px]'>

@@ -2,17 +2,20 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import callToast from '../hooks/callToast';
 import ButtonComp from './ButtonComp';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFile } from '@fortawesome/free-solid-svg-icons';
+import { faFile,faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useDropzone } from 'react-dropzone';
 import { useCallback, useEffect, useState } from 'react';
 import { fetchdata } from '../hooks/fetchdata';
 import { useNavigate } from 'react-router-dom';
+import { useAppContext } from "../lib/AppContext";
+
 
 const URL = "http://localhost:3000/api/pdf/";
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const [PDFarr,SetPDFarr] = useState([]); 
+  const { setCurrentPDF} = useAppContext();
   const toAuth=()=>{
       callToast({ kind: "B", text: "Unexpected error during upload", basic: "error" });
       localStorage.setItem("token","");
@@ -37,6 +40,7 @@ const Sidebar = () => {
           });
           callToast({ kind: "A", promise });
           const { data, error } = await promise;
+          console.log(data);
           if (error) {
             console.error("Upload failed:", error);
             callToast({ kind: "B", text: "Upload failed", basic: "error" });
@@ -101,7 +105,28 @@ const Sidebar = () => {
         toAuth();
     }
   }
-
+  const deletepdf = async({ id }: { id: string })=>{
+    try {
+      const token = localStorage.getItem("token");
+      if(token){
+          const promise = fetchdata({
+          method: "POST",
+          URL: URL + "deletepdf",
+          body:{
+            PDFid:id,
+          },
+          headers: {
+            token: token, 
+          }
+        });
+        callToast({ kind: "A", promise });
+      }
+      console.log("end")
+      fill();
+    } catch (error) {
+      
+    }
+  }
   useEffect(()=>{
     fill();
   },[])
@@ -134,10 +159,30 @@ const Sidebar = () => {
       <h2 className='text-[18px] font-[800] w-full mt-[20px] mb-[10px]'>Uploaded pdf are</h2>
       <div>
         {PDFarr.map((file: any,index) => (
-          <button key={index} className='w-full h-[40px] flex flex-row justify-start items-center p-[8px]'>
-            <FontAwesomeIcon icon={faFile} className="text-[24px]" />
-            <h4 className='ml-[12px] text-[16px] font-[500]'>{file.filename.replace(/\.pdf$/i, "")}</h4>
-          </button>
+          <div key={index} className='w-full h-[40px] flex flex-row justify-between items-center p-[8px]'>
+            <div className='flex-1 flex flex-row justify-start items-center p-[8px]'>
+                <button onClick={()=>{
+                  setCurrentPDF(file);
+                }} 
+                  className='w-full h-[40px] flex flex-row justify-start items-center p-[8px]'>
+                  <FontAwesomeIcon icon={faFile} className="text-[24px]" />
+                  <h4 className='ml-[12px] text-[16px] font-[500]'>{file.filename.replace(/\.pdf$/i, "")}</h4>
+                </button>
+                <ButtonComp
+                  kind={"A"}
+                  type={"button"}
+                  mainimage={<FontAwesomeIcon icon={faTrash} />}
+                  color={"bg-transparent"}
+                  height={"h-[32px]"} 
+                  width={"w-[32px]"}
+                  hovercolor={"hover:bg-[var(--inputbox)]"}       
+                  bordercolor={"border-transparent"}  
+                  onClick={()=>{
+                    deletepdf({id:file._id});
+                  }}
+                />             
+            </div>
+          </div>
         ))}
       </div>
     </div>

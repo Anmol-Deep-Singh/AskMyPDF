@@ -3,13 +3,22 @@ import userModel from '../models/User.js';
 import pdfModel from '../models/PDF.js';
 import historyModel from '../models/History.js';
 import dotenv from 'dotenv';
-import multer from 'multer'
-
-
-const upload = multer({ dest: "uploads/" });
+import { pdf as pdfParse } from "pdf-parse";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { getEmbeddingsFromChunks } from '../util/Embedder.js';
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET as string;
+async function chunkPdfText(pdfText: string) {
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 1000,   
+    chunkOverlap: 200, 
+  });
+
+  const chunks = await splitter.splitText(pdfText);
+  return chunks;
+}
+
 
 const pdfarr= async(req:Request , res:Response)=>{
     try {
@@ -43,9 +52,12 @@ const uploadpdf= async(req:Request , res:Response)=>{
     try {
         //@ts-ignore
         const email = req.user.email;
+        if (!req.file) {
+          return res.status(400).json({ message: "No file uploaded" });
+        }
         const pdf = req.file;
         const user = await userModel.findOne({email});
-            if(!user){
+        if(!user){
                 return res.status(400).json({
                     message: "User not found",
                     error: "Invalid user"
@@ -65,19 +77,23 @@ const uploadpdf= async(req:Request , res:Response)=>{
         }
         const newPDF = new pdfModel({
             filename: pdf.originalname,
-            path: pdf.path,
             size: pdf.size,
             user: user._id
         });
-
         const savedPDF = await newPDF.save();
-        
+        const parsed = await pdfParse(req.file.buffer);
+        const chunks = await chunkPdfText(parsed.text);
+        const vectors = await getEmbeddingsFromChunks(chunks);
+        console.log(vectors);
+        chunks.forEach(async (chunk,index)=>{
+            // const vector = await getEmbedding(chunk[index] as string);
+            // console.log(vector);
+        })
         res.status(200).json({
             message: "PDF uploaded successfully",
             data: {
                 id: savedPDF._id,
                 filename: savedPDF.filename,
-                size: savedPDF.size
             },
             error: null
         });
@@ -90,12 +106,15 @@ const uploadpdf= async(req:Request , res:Response)=>{
         });
     }
 };
-const chatreply= async(req:Request , res:Response)=>{};
+const chatreply= async(req:Request , res:Response)=>{
+
+};
 const deletepdf= async(req:Request , res:Response)=>{
     try {
         //@ts-ignore
         const PDFid = req.body.PDFid;
         const delete_pdf = await pdfModel.deleteOne({_id: PDFid});
+        console.log(delete_pdf);
         const deleted_history = await historyModel.findOneAndDelete({pdf: PDFid});
         if(delete_pdf.deletedCount === 0){
             return res.status(400).json(
