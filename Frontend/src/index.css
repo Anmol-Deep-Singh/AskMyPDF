@@ -94,6 +94,13 @@ body {
   font-family: Arial, sans-serif;
   background-color:var(--bag);
 }
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE & Edge */
+  scrollbar-width: none;     /* Firefox */
+}
 
 @layer base {
   * {

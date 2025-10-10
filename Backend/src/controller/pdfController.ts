@@ -2,14 +2,12 @@ import { type NextFunction,type Request,type Response } from 'express'
 import userModel from '../models/User.js';
 import pdfModel from '../models/PDF.js';
 import historyModel from '../models/History.js';
-import dotenv from 'dotenv';
 import { pdf as pdfParse } from "pdf-parse";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { getEmbeddingsFromChunks,getQueryEmbedding } from '../util/Embedder.js';
 import PdfChunk from '../models/PDFChunk.js';
 import { AskGemini } from '../util/geminiHelper.js';
 import mongoose from 'mongoose';
-const JWT_SECRET = process.env.JWT_SECRET as string;
 async function chunkPdfText(pdfText: string) {
   const splitter = new RecursiveCharacterTextSplitter({
     chunkSize: 1000,   
@@ -112,7 +110,10 @@ const uploadpdf= async(req:Request , res:Response)=>{
 };
 const chatreply= async(req:Request , res:Response)=>{
     try {
-        const query = (req.body?.query as string) || "What is Object Oriented Programming";
+        const query = (req.body?.query as string);
+        if(!query){
+            return res.status(400).json({ message: "Query could not be processed" });
+        }
         const PDFid = req.body?.PDFid as string;
         if (!PDFid) {
             return res.status(400).json({ message: "PDFid is required" });
@@ -120,8 +121,11 @@ const chatreply= async(req:Request , res:Response)=>{
         if (!mongoose.Types.ObjectId.isValid(PDFid)) {
             return res.status(400).json({ message: "Invalid PDFid" });
         }
+        const PDF = await pdfModel.findOne({_id: new mongoose.Types.ObjectId(PDFid)});
+        if(!PDF){
+            return res.status(400).json({ message: "PDF could not be find" });
+        }
         const queryEmb = await getQueryEmbedding(query);
-
         const results = await PdfChunk.aggregate([
         {
             "$vectorSearch": {
@@ -142,9 +146,18 @@ const chatreply= async(req:Request , res:Response)=>{
             ${query}
             Answer in a clear, concise way, and mention page numbers if relevant.
             `;
-        const answer = AskGemini(prompt);
-        console.log(answer)
-        res.send("BYE")
+        const answer = await AskGemini(prompt);
+        console.log(`This is the answer ${answer}`)
+        const history = await historyModel.findOneAndUpdate({pdf:PDF._id},{
+            $push: {
+                conversations:{
+                    userPrompt:query,
+                    apiResponse:answer,
+                }
+            }},{ new: true, upsert: true } );
+        res.status(200).json({
+            data: answer
+        })
     } catch (err) {
         res.status(500).json({
             message: "Chat failed",
