@@ -7,11 +7,15 @@ import callToast from '../hooks/callToast';
 import { fetchdata } from '../hooks/fetchdata';
 import Typewriter from 'typewriter-effect';
 
+
 const URL = "http://localhost:3000/api/pdf/";
+const AImessage = "Hello this is your Ai bot ready to answer your questions ";
 const ChatComp = () => {
+    const [Chat,Setchat] = useState([AImessage]);
     const navigate = useNavigate();
+    const {mode} = useAppContext();
     const inputref = useRef<HTMLInputElement>(null);
-    const [Resp,SefResp] = useState("How can i help you");
+    const [Display,SefDisplay] = useState([]);
     const {currentPDF} = useAppContext();
       const toAuth=()=>{
         callToast({ kind: "B", text: "Unexpected error during upload", basic: "error" });
@@ -40,7 +44,6 @@ const ChatComp = () => {
           callToast({ kind: "A", promise });
           const { data, error } = await promise;
           console.log(data)
-          SefResp(data);
         }
     }
     const handleEnter=(e: KeyboardEvent)=>{
@@ -49,28 +52,61 @@ const ChatComp = () => {
             send();
         }
     }
+    const gethistory = async()=>{
+        try {
+            const token = localStorage.getItem("token") || "";
+            if (!token) {
+                toAuth();
+            }
+            const promise = fetchdata({
+                method: "POST",
+                URL: URL + "showhistory",
+                headers: { token },
+                body: {
+                    PDFid:currentPDF?._id,
+                },
+            });
+            callToast({ kind: "A", promise });
+            const { data, error } = await promise;  
+            const {History} = data;
+            const {conversations} = History;
+            SefDisplay(conversations);
+            
+        } catch (error) {
+            console.log(error)
+        }
+    }
     useEffect(()=>{
         inputref.current?.focus();
         window.addEventListener("keydown", handleEnter);
         return () => window.removeEventListener("keydown", handleEnter);
     },[]);
+    useEffect(()=>{
+        if(mode === "Chat"){
+
+        }else{
+            gethistory();   
+        }
+    },[mode])
   return (
     <div className='bg-green-600 flex-1 flex flex-col justify-start'>
         <div className='flex-1 bg-blue-300 pt-[12px] pl-[64px] pr-[64px]'>
-            <div className='bg-blue-900 ml-[122px] mr-[122px]'>
-                <Typewriter
-                    onInit={(typewriter) => {
-                        typewriter.typeString(`${Resp}`)
-                        .callFunction(() => {
-                            console.log('String typed out!');
-                        })
-                        .pauseFor(2500)
-                        .callFunction(() => {
-                            console.log('All strings were deleted');
-                        })
-                        .start();
-                    }}
-                    />
+            <div className='bg-blue-100 ml-[122px] mr-[122px] flex flex-col flex-start '>
+                {Display.map((message, index) => (
+                    <>{index%2 == 0?
+                        <div className="flex flex-row justify-end mb-[10px]">
+                            <span className="inline-block max-w-[80%] bg-blue-500 text-white p-2 rounded-lg break-words text-justify">
+                                Lorem ipsum dolor sit, amet consectetur adipisicing elit. Ipsam eligendi soluta adipisci suscipit molestiae consequuntur nihil. Tenetur, adipisci. Provident neque facere porro vitae enim nostrum tenetur repudiandae, magni cumque inventore.
+                            </span>
+                        </div>:
+                        <div className="flex flex-row justify-start text-justify mb-[10px]">
+                            <span className="inline-block max-w-[80%] bg-gray-200 p-2 rounded-lg break-words">
+                            Lorem ipsum dolor sit amet consectetur, adipisicing elit. Dolore, recusandae minima. Voluptatem esse sit nemo suscipit magni id, veritatis maxime, quidem ratione mollitia dolor, deserunt molestias voluptatum doloribus illo labore!
+                            </span>
+                        </div>
+                        }
+                    </>
+                ))}
             </div>
         </div>
         <div className='bg-blue-200 h-[70px] flex flex-row justify-center items-start pl-[64px] pr-[64px]'>

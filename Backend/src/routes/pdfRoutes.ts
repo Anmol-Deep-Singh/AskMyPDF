@@ -9,7 +9,7 @@ router.get("/pdfarr", pdfarr);
 router.post("/uploadpdf",upload.single('pdf'),uploadpdf);
 router.post("/chatreply", chatreply);
 router.post("/deletepdf", deletepdf);
-router.get("/showhistory", showhistory);
+router.post("/showhistory", showhistory);
 
 
 export default router;

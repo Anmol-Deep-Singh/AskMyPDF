@@ -9,9 +9,11 @@ import { fetchdata } from '../hooks/fetchdata';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from "../lib/AppContext";
 
+
 const URL = "http://localhost:3000/api/pdf/";
 
 const Sidebar = () => {
+  const {mode,setmode} = useAppContext();
   const navigate = useNavigate();
   const [PDFarr, SetPDFarr] = useState<any[]>([]);
   const { currentPDF, setCurrentPDF } = useAppContext();
@@ -206,11 +208,14 @@ const Sidebar = () => {
               width={"w-[134px]"}   
               hovercolor={"hover:bg-[var(--inputbox)]"}      
               bordercolor={"border border-transparent"}
-              leftimage={<FontAwesomeIcon icon={faClockRotateLeft} className='mr-[4px]'/>}    
-              text={"Show History"}
+              leftimage={mode ==="Chat"?<FontAwesomeIcon icon={faClockRotateLeft} className='mr-[4px]'/>:""}    
+              text={mode === "Chat"?"Show History":"Chat with PDF"}
               onClick={()=>{
-                  navigate("/auth");
-                  localStorage.token = "";
+                if(mode === "Chat"){
+                  setmode("History");
+                }else{
+                  setmode("Chat");
+                }
               }}        
             />
       </div>

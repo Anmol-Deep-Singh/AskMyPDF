@@ -199,7 +199,7 @@ const showhistory= async(req:Request , res:Response)=>{
     try {
         //@ts-ignore
         const PDFid = req.body.PDFid;
-        const History = await historyModel.findOne({pdf: PDFid}).populate("pdf");
+        const History = await historyModel.findOne({pdf: PDFid});
         if(!History){
             return res.status(400).json(
             {
